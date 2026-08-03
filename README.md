@@ -100,3 +100,4 @@ flutter test
 
 `visionbridge-aiot-accessibility` 同时表达品牌“视桥”、AIoT 边云协同能力和无障碍应用场景，比临时名称 `new` 更适合长期维护与展示。
 
+----
