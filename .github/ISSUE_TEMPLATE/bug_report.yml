@@ -1,0 +1,39 @@
+name: Bug report
+description: 报告可复现的功能或部署问题
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: 请勿提交凭据、用户图片、邮箱、精确位置或生产日志。
+  - type: dropdown
+    id: component
+    attributes:
+      label: 模块
+      options: [Dashboard, API, Volunteer App, Edge, WebRTC/TURN, Deployment]
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述
+      description: 说明预期行为和实际行为。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 版本或提交
+      placeholder: commit SHA / release tag
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 已脱敏的日志或截图

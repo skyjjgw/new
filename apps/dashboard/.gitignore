@@ -41,10 +41,10 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+/.openai/
+/.git-empty-backup/
 
 # VisionBridge runtime state
-/server/data/
 /.test-data-smoke/
-/server/data-local-preview/
 **/__pycache__/
 *.pyc

@@ -11,7 +11,7 @@
     "start": "vinext start",
     "export:static": "npm run build && node scripts/export-static.mjs",
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
+    "lint": "eslint .",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {

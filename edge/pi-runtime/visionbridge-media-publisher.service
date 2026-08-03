@@ -1,8 +1,8 @@
 [Unit]
 Description=VisionBridge annotated video publisher
-After=network-online.target blind_occupancy_edge_iotsuite.service visionbridge-media-tunnel.service
+After=network-online.target visionbridge-edge-agent.service visionbridge-media-tunnel.service
 Wants=network-online.target visionbridge-media-tunnel.service
-Requires=blind_occupancy_edge_iotsuite.service
+Requires=visionbridge-edge-agent.service
 StartLimitIntervalSec=0
 
 [Service]

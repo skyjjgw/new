@@ -16,7 +16,6 @@ import {
   ExternalLink,
   Focus,
   Gauge,
-  HardDrive,
   Layers3,
   LocateFixed,
   MapPinned,
@@ -26,7 +25,6 @@ import {
   Route,
   Satellite,
   Search,
-  Server,
   Settings2,
   ShieldCheck,
   Signal,
@@ -105,6 +103,38 @@ type Overview = {
 };
 
 type PublicConfig = { amapKey?: string; amapSecurityCode?: string; defaultCenter?: [number, number] };
+
+type AMapMarkerInstance = {
+  on: (event: "click", handler: () => void) => void;
+};
+
+type AMapInstance = {
+  add: (markers: AMapMarkerInstance[]) => void;
+  remove: (markers: AMapMarkerInstance[]) => void;
+  destroy?: () => void;
+};
+
+type AMapNamespace = {
+  Map: new (container: HTMLDivElement, options: {
+    zoom: number;
+    center: [number, number];
+    viewMode: "2D";
+    mapStyle: string;
+    showLabel: boolean;
+  }) => AMapInstance;
+  Marker: new (options: {
+    position: [number, number];
+    content: string;
+    anchor: "center";
+  }) => AMapMarkerInstance;
+};
+
+declare global {
+  interface Window {
+    AMap?: AMapNamespace;
+    _AMapSecurityConfig?: { securityJsCode: string };
+  }
+}
 
 const mockOverview: Overview = {
   generatedAt: new Date().toISOString(),
@@ -233,30 +263,31 @@ function MetricCard({ icon: Icon, label, value, suffix, detail, tone = "blue" }:
 
 function MapStage({ config, overview, onEvent }: { config: PublicConfig; overview: Overview; onEvent: (event: EventItem) => void }) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
+  const mapInstance = useRef<AMapInstance | null>(null);
+  const markersRef = useRef<AMapMarkerInstance[]>([]);
   const [mapReady, setMapReady] = useState(false);
   const [mapFailed, setMapFailed] = useState(false);
+  const centerLng = config.defaultCenter?.[0] ?? overview.device.lng;
+  const centerLat = config.defaultCenter?.[1] ?? overview.device.lat;
 
   useEffect(() => {
     if (!config.amapKey || !mapRef.current) return;
     let cancelled = false;
     const boot = () => {
-      if (cancelled || !mapRef.current || !(window as any).AMap) return;
-      const AMap = (window as any).AMap;
-      const center = config.defaultCenter || [overview.device.lng, overview.device.lat];
+      if (cancelled || !mapRef.current || !window.AMap) return;
+      const AMap = window.AMap;
       mapInstance.current = new AMap.Map(mapRef.current, {
         zoom: 16.5,
-        center,
+        center: [centerLng, centerLat],
         viewMode: "2D",
         mapStyle: "amap://styles/darkblue",
         showLabel: true,
       });
       setMapReady(true);
     };
-    if ((window as any).AMap) boot();
+    if (window.AMap) boot();
     else {
-      (window as any)._AMapSecurityConfig = config.amapSecurityCode ? { securityJsCode: config.amapSecurityCode } : undefined;
+      window._AMapSecurityConfig = config.amapSecurityCode ? { securityJsCode: config.amapSecurityCode } : undefined;
       const script = document.createElement("script");
       script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(config.amapKey)}`;
       script.async = true;
@@ -270,11 +301,11 @@ function MapStage({ config, overview, onEvent }: { config: PublicConfig; overvie
       mapInstance.current?.destroy?.();
       mapInstance.current = null;
     };
-  }, [config.amapKey, config.amapSecurityCode, config.defaultCenter?.[0], config.defaultCenter?.[1], overview.device.lat, overview.device.lng]);
+  }, [centerLat, centerLng, config.amapKey, config.amapSecurityCode]);
 
   useEffect(() => {
-    if (!mapReady || !mapInstance.current || !(window as any).AMap) return;
-    const AMap = (window as any).AMap;
+    if (!mapReady || !mapInstance.current || !window.AMap) return;
+    const AMap = window.AMap;
     if (markersRef.current.length) mapInstance.current.remove(markersRef.current);
     markersRef.current = overview.recentEvents.map((event) => {
       const marker = new AMap.Marker({
@@ -438,12 +469,13 @@ export function VisionBridgeDashboard() {
 
   useEffect(() => {
     void fetchJson<PublicConfig>("/api/v1/config/public").then(setConfig).catch(() => undefined);
-    void refresh();
+    const initial = window.setTimeout(() => void refresh(), 0);
     const timer = window.setInterval(() => void refresh(), 3000);
     const onVisibility = () => { if (document.visibilityState === "visible") void refresh(); };
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("focus", onVisibility);
     return () => {
+      window.clearTimeout(initial);
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("focus", onVisibility);

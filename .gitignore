@@ -1,10 +1,13 @@
-# 视桥项目：本地工作区与私密配置
+# Local workspaces and private archives
 .trae/
+.idea/
+.vscode/
+**/.openai/
 **/.git-empty-backup/
-99_私密配置_禁止提交/*
-!99_私密配置_禁止提交/README.md
+90_历史版本与过程文件/
+99_私密配置_禁止提交/
 
-# 环境变量、密钥与证书（仅提交示例文件）
+# Secrets and machine-specific configuration
 **/.env
 **/.env.*
 !**/.env.example
@@ -17,52 +20,66 @@
 **/*.keystore
 **/local.properties
 
-# 依赖、工具缓存与编辑器文件
-**/node_modules/
-**/.dart_tool/
-**/.gradle/
-**/.idea/
-**/.vscode/
-**/.pytest_cache/
+# Python
 **/__pycache__/
 **/*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.coverage
+**/htmlcov/
+**/.venv/
+**/venv/
+**/*.egg-info/
+
+# Node.js and web builds
+**/node_modules/
+**/.next/
+**/dist/
+**/static-deploy/
 **/.wrangler/
-**/.openai/
-**/*.iml
 **/*.tsbuildinfo
 
-# 构建、运行与测试产物
+# Flutter, Dart and Gradle builds
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/.pub-cache/
+**/.gradle/
 **/build/
-**/dist/
-**/.next/
-**/static-deploy/
-**/release-staging-*/
-**/.test-data-*/
-**/*.pid
-**/*.log
 **/*.apk
 **/*.aab
-**/*.tar.gz
-**/*.tgz
 
-# 本地运行数据、上传文件与数据库
+# Runtime data and user-generated content
 **/data-local-preview/
+**/data/
 **/uploads/
 **/volunteer_uploads/
 **/snapshots/
 **/*.db
+**/*.db-*
 **/*.sqlite
 **/*.sqlite3
+**/*.pid
+**/*.log
 
-# 过程文件体积大、包含重复副本；正式成果已在标准仓库目录保留
-90_历史版本与过程文件/*
-!90_历史版本与过程文件/README.md
+# Binary deliverables and model weights belong in GitHub Releases/object storage
+**/*.onnx
+**/*.tflite
+**/*.engine
+**/*.pt
+**/*.pth
+**/release-staging-*/
+**/*.tar.gz
+**/*.tgz
+**/*.zip
 
-# 操作系统临时文件
+# Office source files are local unless explicitly approved for publication
+**/*.pptx
+**/*.docx
+
+# Operating-system metadata
 .DS_Store
 Thumbs.db
 Desktop.ini
-
-# 最终兜底：私密目录中即使名为 example 也不提交，说明文件除外
-99_私密配置_禁止提交/*
-!99_私密配置_禁止提交/README.md

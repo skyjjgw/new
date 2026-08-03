@@ -31,7 +31,7 @@ class ApiClient {
   ApiClient({String? baseUrl, http.Client? client})
       : baseUrl = _normalizeBase(baseUrl ??
             const String.fromEnvironment('VISIONBRIDGE_API_BASE',
-                defaultValue: 'http://115.231.176.136:8088')),
+                defaultValue: 'same-origin')),
         _client = client ?? http.Client();
 
   final String baseUrl;
