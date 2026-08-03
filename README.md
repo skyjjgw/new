@@ -1,42 +1,116 @@
-# VisionBridge AIoT Accessibility（视桥）
+# VisionBridge / 视桥
 
-视桥是一套面向城市盲道和无障碍通行的边云协同平台：边缘设备在本地完成障碍识别与定位，自有云统一管理设备、事件、地图和实时视频，Flutter 志愿者 App 负责拍照上报、公共接单、现场处置与复核闭环。
+> 面向城市盲道与无障碍通行场景的边缘 AI、实时地图与志愿者协同平台。
 
-## 功能概览
+视桥将摄像头、GNSS、边缘推理、自有云、低延迟视频和公众协作串成一条闭环：边缘设备在本地识别盲道占用并直传自有云；管理员审核事件并发布公共任务；志愿者通过 Flutter App 拍照上报、地图接单、现场处理和提交复核证据。
 
-- 树莓派/边缘终端运行 YOLOv8 ONNX，本地完成识别和事件生成；
-- 设备遥测和障碍数据直传自有云，不依赖第三方 IoT 平台；
-- 管理大屏提供实时地图、审核派单、设备健康和多设备视频入口；
-- MediaMTX + WebRTC/WHEP 提供低延迟画面，coturn 负责 NAT 中继；
-- Flutter App 支持邮箱验证码登录、拍照上报、地图选点、接单和闭环反馈；
-- App 与云端通过短轮询和操作后刷新保持状态一致。
+本仓库是研华 AIoT 创新应用大赛项目的可复现工程版本。当前属于可运行原型，已经完成单边缘设备、单云节点和志愿者闭环验证，不应直接视为具备高可用、合规审计和大规模并发能力的生产系统。
+
+| 管理大屏 | 边缘识别 |
+| --- | --- |
+| ![视桥管理大屏](docs/images/dashboard.png) | ![视桥边缘识别](docs/images/edge-detection.png) |
+
+## 项目解决什么问题
+
+传统无障碍设施巡检依赖人工发现、线下流转和重复沟通，障碍位置、现场证据、处置责任和复核结果难以形成统一数据。视桥围绕“发现、审核、派单、处置、复核”建立可追踪状态流，并坚持两条技术边界：
+
+- 识别在边缘设备本地完成，原始画面不上传第三方 AI 平台；
+- 遥测、事件、图片和视频直接进入自有云，不依赖研华 IoTSuite 等第三方业务平台。
+
+研华 IoTSuite 的早期适配代码已退出主运行链路，迁移背景见 [历史兼容说明](docs/legacy/advantech-iotsuite.md)。
+
+## 已实现能力
+
+| 模块 | 当前能力 | 主要技术 |
+| --- | --- | --- |
+| 边缘端 | USB 摄像头采集、LC76G GNSS、YOLOv8 ONNX 推理、事件去抖、离线重试、快照与遥测直传 | Python、OpenCV DNN、ONNX |
+| 自有云 API | 邮箱验证码、志愿者上报、审核、公共派单、接单、处理、复核、设备与事件查询 | FastAPI、SQLite |
+| 管理大屏 | 事件地图、审核与派单、设备健康、多设备入口、WebRTC/HLS 播放 | React、TypeScript、Vinext |
+| 志愿者 App | QQ 邮箱验证码、拍照上报、系统定位、地图选点、地图接单、任务处理、个人记录删除 | Flutter、WebView、高德地图 JS API |
+| 媒体链路 | 边缘硬件编码、RTSP 发布、WebRTC/WHEP 低延迟播放、HLS 回退、TURN 中继 | FFmpeg、MediaMTX、coturn |
+| 数据同步 | 大屏 3 秒、App 6 秒自动刷新，页面恢复与写操作后主动刷新 | HTTP 短轮询 |
+
+尚未完成的生产化工作包括 PostgreSQL 迁移、对象存储、消息队列、多实例协调、完整管理员 RBAC、端到端可观测性、隐私合规流程和规模化压力测试。
+
+## 系统架构
+
+```mermaid
+flowchart LR
+    subgraph Edge[边缘设备]
+        Camera[USB 摄像头] --> Agent[边缘识别进程]
+        GNSS[LC76G GNSS] --> Agent
+        Model[YOLOv8 ONNX] --> Agent
+        Agent --> Encoder[FFmpeg H.264]
+    end
+
+    subgraph Cloud[视桥自有云]
+        API[FastAPI API] --> DB[(SQLite)]
+        API --> Uploads[(上报与快照)]
+        Media[MediaMTX] <--> Turn[coturn]
+        Nginx[Nginx] --> API
+        Nginx --> Media
+    end
+
+    Agent -->|HTTPS 遥测/事件| API
+    Encoder -->|RTSP/SSH 隧道| Media
+    Dashboard[管理大屏] -->|REST + WebRTC| Nginx
+    App[Flutter 志愿者 App] -->|REST + 图片上传| Nginx
+```
+
+核心数据来源和接口边界：
+
+| 数据 | 来源 | 进入云端的方式 | 使用方 |
+| --- | --- | --- | --- |
+| 摄像头帧 | USB 摄像头 | 本地推理；标注视频经 RTSP 发布 | 边缘识别、管理大屏 |
+| 经纬度 | LC76G GNSS 或手机系统定位 | 遥测 JSON / App 表单 | 地图、事件、任务 |
+| 识别事件 | 边缘端状态机 | `POST /api/v1/telemetry` + Bearer Token | 事件地图、设备健康 |
+| 志愿者上报 | App 相机、文字与地图选点 | multipart HTTP | 管理审核、公共地图 |
+| 实时视频 | 边缘端 FFmpeg | MediaMTX RTSP，浏览器 WHEP/WebRTC | 设备详情 |
+| 邮箱验证码 | 自有云 SMTP 客户端 | QQ SMTP SSL | 志愿者登录 |
+
+完整组件职责、状态机和一致性策略见 [系统架构](docs/ARCHITECTURE.md)，HTTP 接口见 [API 概览](docs/API.md)。
 
 ## 仓库结构
 
 ```text
 visionbridge-aiot-accessibility/
-├─ .github/workflows/       # GitHub Actions
+├─ .github/                 # CI、Issue/PR 模板、依赖更新配置
 ├─ apps/
-│  ├─ dashboard/            # React/Vinext 管理大屏 + FastAPI 服务
-│  └─ volunteer/            # Flutter 志愿者 App
+│  ├─ dashboard/            # 管理大屏
+│  └─ volunteer/            # Flutter Android/Web 客户端
+├─ services/
+│  └─ api/                  # FastAPI 与 SQLite 业务服务
 ├─ edge/
-│  └─ pi-runtime/           # 摄像头、GNSS、ONNX 推理、直传与视频发布
-├─ deploy/                  # 云服务器发布、MediaMTX 与 coturn 部署工具
-├─ integrations/
-│  └─ advantech-iotsuite/   # 研华 IoTSuite 历史兼容与参考代码
-├─ docs/                    # 架构、需求、赛事、硬件与答辩资料
-├─ assets/                  # 项目图片、图形和展示素材
-├─ SECURITY.md
-└─ README.md
+│  └─ pi-runtime/           # 边缘识别、GNSS、遥测与视频发布
+├─ deploy/                  # Nginx、MediaMTX、coturn、systemd 与发布脚本
+└─ docs/                    # 架构、开发、部署、需求和赛事说明
 ```
 
-`90_历史版本与过程文件`、`99_私密配置_禁止提交` 和 `.trae` 仅保留在本地，不会进入 Git 仓库。
+`90_历史版本与过程文件/`、`99_私密配置_禁止提交/` 和 `.trae/` 仅存在于本地工作区，不属于仓库。模型权重、PPT、APK、赛事原件和原始素材也不进入 Git 提交，具体规则见 [仓库内容策略](docs/REPOSITORY_POLICY.md)。
 
 ## 快速开始
 
-### 1. 管理大屏
+### 环境要求
 
-要求 Node.js 22.13 或更高版本。
+- Node.js `>=22.13` 与 npm；
+- Python `>=3.11`；
+- Flutter stable，Dart `>=3.2.6 <4.0.0`；
+- 边缘端另需 Linux、OpenCV、ONNX Runtime/OpenCV DNN、FFmpeg、串口与摄像头权限。
+
+### 1. 启动 API
+
+```bash
+python -m venv .venv
+# Windows: .\.venv\Scripts\Activate.ps1
+# Linux/macOS: source .venv/bin/activate
+pip install -r services/api/requirements.txt
+cp apps/dashboard/.env.example .env
+uvicorn services.api.app:app --reload --port 8000
+```
+
+开发环境可以设置 `VISIONBRIDGE_EMAIL_DEBUG=1`，API 会返回调试验证码。该选项禁止用于公网环境。
+
+### 2. 启动管理大屏
 
 ```bash
 cd apps/dashboard
@@ -44,21 +118,9 @@ npm ci
 npm run dev
 ```
 
-### 2. 自有云 API
+前端开发服务器需要把 `/api` 请求代理到 `http://127.0.0.1:8000`，或使用生产构建由 Nginx 同源托管。
 
-```bash
-cd apps/dashboard
-python -m venv .venv
-# Windows: .\.venv\Scripts\Activate.ps1
-# Linux/macOS: source .venv/bin/activate
-pip install -r server/requirements.txt
-cp .env.example .env
-uvicorn server.app:app --reload --port 8000
-```
-
-启动前请把 `.env` 中的占位值替换为本地开发值。不要修改并提交 `.env.example` 来保存真实凭据。
-
-### 3. 志愿者 App
+### 3. 运行志愿者 App
 
 ```bash
 cd apps/volunteer
@@ -66,38 +128,74 @@ flutter pub get
 flutter run --dart-define=VISIONBRIDGE_API_BASE=http://127.0.0.1:8000
 ```
 
-Android 真机访问电脑服务时，应将 API 地址换成手机可访问的局域网或 HTTPS 域名。
+Android 真机不能用电脑的 `127.0.0.1`，应替换为手机可访问的局域网地址或 HTTPS 域名。Web 同源部署使用 `VISIONBRIDGE_API_BASE=same-origin`。
 
-### 4. 边缘端
+### 4. 部署边缘端
+
+模型权重不存放在 Git 中。先按 [模型说明](edge/pi-runtime/models/README.md) 放置权重，再执行：
 
 ```bash
-cd edge/pi-runtime
-cp visionbridge_edge.env.example /etc/visionbridge/edge.env
-cp visionbridge_media.env.example /etc/visionbridge/media-publisher.env
+sudo install -d -m 0755 /opt/visionbridge/edge
+sudo install -d -m 0750 /etc/visionbridge
+sudo cp edge/pi-runtime/visionbridge_edge.env.example /etc/visionbridge/edge.env
+sudo chmod 0640 /etc/visionbridge/edge.env
 ```
 
-填写真实自有云地址和随机令牌后，按 [边缘端部署说明](edge/README.md) 安装 systemd 服务。真实配置只保存在设备或服务器上。
+填写自有云 URL、设备 ID 和随机上传令牌后，按 [边缘端说明](edge/README.md) 安装 systemd 服务。
 
-## 验证
+更完整的开发联调步骤见 [开发指南](docs/DEVELOPMENT.md)，生产拓扑和端口见 [部署指南](docs/DEPLOYMENT.md)。
+
+## 配置与安全
+
+仓库只保存带无效占位值的 `*.env.example`。以下内容禁止提交：SMTP 授权码、地图 Key/安全密钥、API 签名密钥、设备上传令牌、TURN 密钥、SSH 凭据、数据库、用户图片和生产日志。
+
+生产环境至少需要独立生成：
+
+- `VISIONBRIDGE_AUTH_SECRET`：登录会话签名；
+- `VISIONBRIDGE_INGEST_TOKEN`：边缘遥测鉴权；
+- `VISIONBRIDGE_MEDIA_PUBLISH_SECRET`：设备媒体发布；
+- `VISIONBRIDGE_TURN_SECRET`：TURN REST 鉴权；
+- `VISIONBRIDGE_SMTP_AUTH_CODE`：QQ 邮箱 SMTP 授权码。
+
+凭据若曾出现在提交、Issue、日志、截图或聊天记录中，必须立即吊销并重新生成。安全报告规则见 [SECURITY.md](SECURITY.md)。
+
+## 测试
 
 ```bash
+# Dashboard
 cd apps/dashboard
+npm ci
+npm run lint
 npm test
-python -m pytest server/test_volunteer_api.py
 
-cd ../volunteer
+# API（从仓库根目录运行）
+python -m pytest services/api/test_volunteer_api.py
+
+# Flutter
+cd apps/volunteer
+flutter analyze
 flutter test
+
+# Python 语法检查
+python -m py_compile services/api/app.py edge/pi-runtime/visionbridge_edge_agent.py
 ```
 
-## 文档
+CI 会在每次推送和 Pull Request 上执行管理大屏构建测试、API 流程测试、Flutter 静态检查与测试，以及边缘/部署 Python 语法检查。
 
-- [完整使用与部署说明](docs/USAGE.md)
-- [项目需求与接口设计](docs/design/视桥_云端可视化平台_需求规格与接口设计.md)
+## 文档导航
+
+- [系统架构与数据流](docs/ARCHITECTURE.md)
+- [HTTP API 概览](docs/API.md)
+- [开发与本地联调](docs/DEVELOPMENT.md)
+- [生产部署与验收](docs/DEPLOYMENT.md)
+- [仓库内容与大文件策略](docs/REPOSITORY_POLICY.md)
 - [边缘性能与低延迟链路](edge/性能优化与低延迟链路说明_20260803.md)
-- [安全与密钥规范](SECURITY.md)
+- [云端需求规格](docs/design/视桥_云端可视化平台_需求规格与接口设计.md)
+- [志愿者 App 需求规格](docs/design/视桥_志愿者App_需求规格与接口设计.md)
 - [贡献指南](CONTRIBUTING.md)
 
-## 仓库名称
+## 许可与使用
 
-`visionbridge-aiot-accessibility` 同时表达品牌“视桥”、AIoT 边云协同能力和无障碍应用场景，比临时名称 `new` 更适合长期维护与展示。
+本仓库目前未附加开源许可证。除 GitHub 平台允许的浏览和 Fork 行为外，源代码、模型、文档和视觉素材的复制、修改、分发或商业使用未获授权。若计划正式开源，应由项目所有者明确选择许可证，并分别确认模型训练数据、第三方文档、地图服务和素材的授权边界。
 
+维护者：[@skyjjgw](https://github.com/skyjjgw)

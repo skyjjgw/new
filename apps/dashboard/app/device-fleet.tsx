@@ -69,12 +69,13 @@ export function DeviceFleetView({ fallbackDevice }: { fallbackDevice: Device }) 
   }, [fallbackDevice]);
 
   useEffect(() => {
-    void refresh();
+    const initial = window.setTimeout(() => void refresh(), 0);
     const timer = window.setInterval(() => void refresh(), 3000);
     const resume = () => { if (document.visibilityState === "visible") void refresh(); };
     document.addEventListener("visibilitychange", resume);
     window.addEventListener("focus", resume);
     return () => {
+      window.clearTimeout(initial);
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", resume);
       window.removeEventListener("focus", resume);

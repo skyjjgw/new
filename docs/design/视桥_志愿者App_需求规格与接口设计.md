@@ -144,8 +144,8 @@ flowchart LR
 | `POST` | `/volunteer/tasks/{id}/complete` | 用户 Bearer | 提交说明和完成照片 |
 | `GET` | `/volunteer/tasks/mine` | 用户 Bearer | 我的任务 |
 | `DELETE` | `/volunteer/reports/{id}` | 用户 Bearer | 删除本人待审核或已驳回上报 |
-| `GET` | `/admin/reports` | 临时免登录 | 审核列表及各状态数量 |
-| `GET` | `/admin/operations/summary` | 临时免登录 | 上报、任务、障碍状态链一致性摘要 |
+| `GET` | `/admin/reports` | 管理员认证 | 审核列表及各状态数量 |
+| `GET` | `/admin/operations/summary` | 管理员认证 | 上报、任务、障碍状态链一致性摘要 |
 | `PATCH` | `/admin/reports/{id}` | 管理员 Basic | 通过或驳回并决定派单 |
 | `GET` | `/admin/tasks` | 管理员 Basic | 派单管理 |
 | `PATCH` | `/admin/tasks/{id}` | 管理员 Basic | 完成复核或退回 |

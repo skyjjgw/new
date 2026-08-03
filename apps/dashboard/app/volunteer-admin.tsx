@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Database, MapPinned, RefreshCw, Route, ShieldAlert, X } from "lucide-react";
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type ReportStatus = "pending" | "approved" | "rejected";
@@ -102,12 +103,13 @@ export function VolunteerAdminView() {
   }, []);
 
   useEffect(() => {
-    void load();
+    const initial = window.setTimeout(() => void load(), 0);
     const timer = window.setInterval(() => void load(true), 4000);
     const onVisibility = () => { if (document.visibilityState === "visible") void load(true); };
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("focus", onVisibility);
     return () => {
+      window.clearTimeout(initial);
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("focus", onVisibility);
@@ -168,7 +170,7 @@ export function VolunteerAdminView() {
   const visibleTasks = useMemo(() => taskStatus === "all" ? tasks : tasks.filter((item) => item.status === taskStatus), [taskStatus, tasks]);
 
   return <div className="subpage admin-page">
-    <div className="subpage-head"><div><span className="eyebrow">VOLUNTEER OPERATIONS</span><h1>志愿者审核与公共派单</h1><p>手机上报、审核入库、地图障碍和 App 公共任务使用同一条状态链。</p></div><div className="admin-head-actions"><span className="architecture-badge warning"><ShieldAlert size={15} />临时免登录</span><button className="secondary-action" onClick={() => void load()}><RefreshCw size={15} className={loading ? "spin" : ""} />刷新</button></div></div>
+    <div className="subpage-head"><div><span className="eyebrow">VOLUNTEER OPERATIONS</span><h1>志愿者审核与公共派单</h1><p>手机上报、审核入库、地图障碍和 App 公共任务使用同一条状态链。</p></div><div className="admin-head-actions"><span className="architecture-badge"><ShieldAlert size={15} />管理员认证保护</span><button className="secondary-action" onClick={() => void load()}><RefreshCw size={15} className={loading ? "spin" : ""} />刷新</button></div></div>
 
     <div className="admin-source-note panel"><Database size={16} /><span><strong>数据口径：</strong>监管首页“活动事件”包含边缘设备识别事件；这里“公共派单”只统计审核通过并发布给志愿者的任务，两者不是同一个指标。</span></div>
     <div className="admin-summary-grid">
@@ -186,7 +188,7 @@ export function VolunteerAdminView() {
       <div className="review-list">
         {!loading && reports[reportStatus].length === 0 && <div className="panel admin-empty"><Check size={24} /><strong>当前没有{reportLabels[reportStatus]}上报</strong><span>新的手机上报会自动出现在这里。</span></div>}
         {reports[reportStatus].map((report) => <article className="panel review-card" key={report.id}>
-          <img className="review-photo" src={report.photoUrl} alt={report.categoryLabel} />
+          <Image className="review-photo" src={report.photoUrl} alt={report.categoryLabel} width={320} height={200} unoptimized />
           <div className="review-copy"><div className="review-title"><span className={`priority priority-${report.priority}`}>{({ low: "低", normal: "普通", urgent: "紧急" })[report.priority]}</span><h2>{report.categoryLabel}</h2><small>{new Date(report.createdAt).toLocaleString("zh-CN")}</small></div><p>{report.description}</p><div className="review-meta"><span><MapPinned size={14} />{report.address}</span><span><ShieldAlert size={14} />{report.cleanupReasonLabel}</span><span>上报人：{report.reporter.displayName}（{report.reporter.email}）</span><span>编号：{report.id}</span></div>{report.reviewNote && <div className="review-note">审核说明：{report.reviewNote}</div>}</div>
           {report.status === "pending" && <div className="review-actions"><button className="secondary-action danger-action" onClick={() => void reviewReport(report, "reject")}><X size={15} />驳回</button><button className="primary-action" onClick={() => void reviewReport(report, "approve")}><Check size={15} />通过并派单</button></div>}
         </article>)}

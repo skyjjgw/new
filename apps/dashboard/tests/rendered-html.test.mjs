@@ -50,13 +50,13 @@ test("documents the direct-to-own-cloud data path and offline fallback", async (
   assert.doesNotMatch(source, /云桥接|签名 REST/);
 });
 
-test("volunteer operations are login-free and load independent data sources", async () => {
+test("volunteer operations declare admin protection and load independent data sources", async () => {
   const source = await readFile(
     new URL("../app/volunteer-admin.tsx", import.meta.url),
     "utf8",
   );
 
-  assert.match(source, /临时免登录/);
+  assert.match(source, /管理员认证保护/);
   assert.match(source, /Promise\.allSettled/);
   assert.match(source, /状态链一致性/);
   assert.match(source, /数据口径/);

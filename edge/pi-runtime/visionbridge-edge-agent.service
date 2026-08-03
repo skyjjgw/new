@@ -1,0 +1,23 @@
+[Unit]
+Description=VisionBridge Edge Client - Direct Cloud Upload
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/opt/visionbridge/edge
+Environment=VISIONBRIDGE_EDGE_ENV_FILE=/etc/visionbridge/edge.env
+ExecStart=/usr/bin/env bash /opt/visionbridge/edge/run_visionbridge_edge.sh
+Restart=always
+RestartSec=5
+TimeoutStopSec=15
+StandardOutput=journal
+StandardError=journal
+Environment=HOME=/home/pi
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

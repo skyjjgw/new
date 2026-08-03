@@ -11,9 +11,9 @@ flowchart LR
     DB --> Web[可视化网站]
 ```
 
-- 主程序：`pi-runtime/blind_occupancy_edge_iotsuite.py`。文件名为兼容既有部署暂时保留，程序已不连接 IoTSuite、DCCS 或 MQTT。
-- 启动脚本：`pi-runtime/run_blind_occupancy_edge.sh`。
-- systemd：`blind_occupancy_edge_iotsuite.service`。服务名为兼容原机器的开机启动项暂时保留，Description 已改为 Direct Cloud Upload。
+- 主程序：`pi-runtime/visionbridge_edge_agent.py`，不连接 IoTSuite、DCCS 或 MQTT。
+- 启动脚本：`pi-runtime/run_visionbridge_edge.sh`。
+- systemd：`visionbridge-edge-agent.service`。
 - 传输目标：`VISIONBRIDGE_CLOUD_URL`，当前为自有云 `/api/v1/telemetry`。
 - 鉴权：`VISIONBRIDGE_INGEST_TOKEN`，仅放入树莓派权限受限的环境文件，不写入源码。
 - 可靠性：上传在线程内执行，失败指数退避重试；视觉推理线程不等待网络。
@@ -28,4 +28,4 @@ flowchart LR
 
 ## 必需环境变量
 
-参见 `pi-runtime/visionbridge_edge.env.example`。部署文件为 `/home/pi/blind_occupancy/blind_occupancy_edge.env`，权限应为 `0600`。
+参见 `pi-runtime/visionbridge_edge.env.example`。部署文件为 `/etc/visionbridge/edge.env`，权限不高于 `0640`。
