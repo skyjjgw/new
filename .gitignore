@@ -1,0 +1,68 @@
+# 视桥项目：本地工作区与私密配置
+.trae/
+**/.git-empty-backup/
+99_私密配置_禁止提交/*
+!99_私密配置_禁止提交/README.md
+
+# 环境变量、密钥与证书（仅提交示例文件）
+**/.env
+**/.env.*
+!**/.env.example
+!**/*.env.example
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.jks
+**/*.keystore
+**/local.properties
+
+# 依赖、工具缓存与编辑器文件
+**/node_modules/
+**/.dart_tool/
+**/.gradle/
+**/.idea/
+**/.vscode/
+**/.pytest_cache/
+**/__pycache__/
+**/*.py[cod]
+**/.wrangler/
+**/.openai/
+**/*.iml
+**/*.tsbuildinfo
+
+# 构建、运行与测试产物
+**/build/
+**/dist/
+**/.next/
+**/static-deploy/
+**/release-staging-*/
+**/.test-data-*/
+**/*.pid
+**/*.log
+**/*.apk
+**/*.aab
+**/*.tar.gz
+**/*.tgz
+
+# 本地运行数据、上传文件与数据库
+**/data-local-preview/
+**/uploads/
+**/volunteer_uploads/
+**/snapshots/
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+
+# 过程文件体积大、包含重复副本；正式成果已在标准仓库目录保留
+90_历史版本与过程文件/*
+!90_历史版本与过程文件/README.md
+
+# 操作系统临时文件
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# 最终兜底：私密目录中即使名为 example 也不提交，说明文件除外
+99_私密配置_禁止提交/*
+!99_私密配置_禁止提交/README.md

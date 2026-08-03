@@ -1,0 +1,25 @@
+[Unit]
+Description=VisionBridge secure RTSP tunnel to cloud
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+Environment=AUTOSSH_GATETIME=0
+ExecStart=/usr/bin/autossh -M 0 -N -T \
+  -o BatchMode=yes \
+  -o ExitOnForwardFailure=yes \
+  -o ServerAliveInterval=20 \
+  -o ServerAliveCountMax=3 \
+  -o StrictHostKeyChecking=yes \
+  -i /home/pi/.ssh/visionbridge_media_ed25519 \
+  -L 127.0.0.1:18554:127.0.0.1:8554 \
+  visionbridge-media@115.231.176.136
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+

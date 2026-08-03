@@ -1,0 +1,143 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#071B3A"/>
+      <stop offset="55%" stop-color="#0B2D5C"/>
+      <stop offset="100%" stop-color="#0E3E78"/>
+    </linearGradient>
+    <linearGradient id="panelBlue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1B7DFF"/>
+      <stop offset="100%" stop-color="#37B8FF"/>
+    </linearGradient>
+    <linearGradient id="panelGreen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1DBF73"/>
+      <stop offset="100%" stop-color="#53D89B"/>
+    </linearGradient>
+    <linearGradient id="panelOrange" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF9A2E"/>
+      <stop offset="100%" stop-color="#FFC55C"/>
+    </linearGradient>
+    <linearGradient id="panelPurple" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7E6BFF"/>
+      <stop offset="100%" stop-color="#A58BFF"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#021124" flood-opacity="0.35"/>
+    </filter>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#53C7FF"/>
+    </marker>
+    <marker id="arrowWhite" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#EAF7FF"/>
+    </marker>
+    <style>
+      .title { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 42px; font-weight: 700; fill: #F8FCFF; }
+      .subtitle { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 20px; font-weight: 500; fill: #B8D9FF; }
+      .sectionTitle { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 26px; font-weight: 700; fill: #FFFFFF; }
+      .sectionLabel { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 18px; font-weight: 700; fill: #DDF5FF; }
+      .body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 18px; font-weight: 500; fill: #EAF7FF; }
+      .small { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 15px; font-weight: 500; fill: #D2E8FF; }
+      .tiny { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 13px; font-weight: 500; fill: #D2E8FF; }
+      .pill { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 15px; font-weight: 700; fill: #062244; }
+      .footer { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 17px; font-weight: 600; fill: #DFF1FF; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <circle cx="1450" cy="90" r="180" fill="#114A87" opacity="0.25"/>
+  <circle cx="126" cy="780" r="220" fill="#0D3B71" opacity="0.28"/>
+  <path d="M0 170 C240 120, 410 240, 650 190 S1150 80, 1600 170" fill="none" stroke="#2F76C3" stroke-width="2" opacity="0.35"/>
+  <path d="M0 720 C240 650, 520 810, 820 740 S1240 650, 1600 760" fill="none" stroke="#2F76C3" stroke-width="2" opacity="0.24"/>
+
+  <text x="84" y="86" class="title">课题方案设计：视桥系统总体流程</text>
+  <text x="84" y="126" class="subtitle">基于边云协同的城市盲道违规占用监测系统，从道路感知到云端闭环治理的完整业务链路</text>
+
+  <rect x="74" y="168" rx="28" ry="28" width="320" height="520" fill="#102A52" stroke="#2A74C8" stroke-width="2.2" filter="url(#shadow)"/>
+  <rect x="112" y="154" rx="18" ry="18" width="150" height="42" fill="url(#panelBlue)"/>
+  <text x="142" y="182" class="sectionLabel">01 感知端</text>
+  <text x="106" y="236" class="sectionTitle">道路信息采集</text>
+  <text x="106" y="276" class="body">USB 摄像头</text>
+  <text x="106" y="312" class="small">实时采集盲道道路场景视频</text>
+  <text x="106" y="370" class="body">LC76G GPS</text>
+  <text x="106" y="406" class="small">提供经纬度、卫星数与定位状态</text>
+
+  <rect x="106" y="458" rx="20" ry="20" width="252" height="112" fill="#163A69" stroke="#4DB7FF" stroke-width="1.8"/>
+  <text x="132" y="498" class="body">输入数据</text>
+  <text x="132" y="520" class="small">道路视频流</text>
+  <text x="132" y="540" class="small">实时位置信息</text>
+
+  <rect x="106" y="574" rx="20" ry="20" width="252" height="100" fill="#163A69" stroke="#4DB7FF" stroke-width="1.8"/>
+  <text x="132" y="612" class="small">为后续识别与事件判定</text>
+  <text x="132" y="636" class="small">提供原始依据</text>
+
+  <rect x="448" y="168" rx="28" ry="28" width="342" height="520" fill="#0F2F44" stroke="#2BAA76" stroke-width="2.2" filter="url(#shadow)"/>
+  <rect x="488" y="154" rx="18" ry="18" width="168" height="42" fill="url(#panelGreen)"/>
+  <text x="520" y="182" class="sectionLabel">02 边缘端</text>
+  <text x="480" y="236" class="sectionTitle">本地智能识别与判定</text>
+  <text x="480" y="278" class="body">UNO220 工业计算平台</text>
+
+  <rect x="478" y="322" rx="18" ry="18" width="282" height="64" fill="#16485B" stroke="#62E0A7" stroke-width="1.6"/>
+  <text x="507" y="362" class="body">YOLOv8 目标检测</text>
+
+  <rect x="478" y="402" rx="18" ry="18" width="282" height="64" fill="#16485B" stroke="#62E0A7" stroke-width="1.6"/>
+  <text x="507" y="442" class="body">ROI 命中判定</text>
+
+  <rect x="478" y="482" rx="18" ry="18" width="282" height="102" fill="#16485B" stroke="#62E0A7" stroke-width="1.6"/>
+  <text x="507" y="516" class="body">事件状态机</text>
+  <text x="507" y="536" class="small">suspected → active</text>
+  <text x="507" y="556" class="small">→ cleared</text>
+
+  <rect x="478" y="578" rx="18" ry="18" width="282" height="100" fill="#16485B" stroke="#62E0A7" stroke-width="1.6"/>
+  <text x="507" y="616" class="body">冻结 GPS 与抓拍图</text>
+  <text x="507" y="638" class="small">确认事件时刻的</text>
+  <text x="507" y="660" class="small">位置与证据</text>
+
+  <rect x="844" y="168" rx="28" ry="28" width="322" height="520" fill="#4D2D0E" opacity="0.96" stroke="#FFA640" stroke-width="2.2" filter="url(#shadow)"/>
+  <rect x="886" y="154" rx="18" ry="18" width="168" height="42" fill="url(#panelOrange)"/>
+  <text x="918" y="182" class="sectionLabel">03 云端平台</text>
+  <text x="876" y="236" class="sectionTitle">数据接入与平台消费</text>
+  <text x="876" y="280" class="body">MQTT 数据上报</text>
+  <text x="876" y="314" class="small">上传设备状态、事件状态</text>
+  <text x="876" y="336" class="small">与定位信息</text>
+
+  <rect x="872" y="354" rx="18" ry="18" width="266" height="66" fill="#6C4011" stroke="#FFD178" stroke-width="1.6"/>
+  <text x="900" y="395" class="body">IoTSuite 设备模型</text>
+
+  <rect x="872" y="436" rx="18" ry="18" width="266" height="66" fill="#6C4011" stroke="#FFD178" stroke-width="1.6"/>
+  <text x="900" y="477" class="body">DataHub 数据接入</text>
+
+  <rect x="872" y="518" rx="18" ry="18" width="266" height="66" fill="#6C4011" stroke="#FFD178" stroke-width="1.6"/>
+  <text x="900" y="559" class="body">Notification 告警规则</text>
+
+  <rect x="872" y="600" rx="18" ry="18" width="266" height="66" fill="#6C4011" stroke="#FFD178" stroke-width="1.6"/>
+  <text x="900" y="641" class="body">事件数据消费与存储</text>
+
+  <rect x="1220" y="168" rx="28" ry="28" width="308" height="520" fill="#2E1F64" opacity="0.98" stroke="#9A87FF" stroke-width="2.2" filter="url(#shadow)"/>
+  <rect x="1260" y="154" rx="18" ry="18" width="168" height="42" fill="url(#panelPurple)"/>
+  <text x="1292" y="182" class="sectionLabel">04 应用层</text>
+  <text x="1252" y="236" class="sectionTitle">监管展示与治理闭环</text>
+
+  <rect x="1248" y="286" rx="18" ry="18" width="252" height="72" fill="#45309A" stroke="#C4B7FF" stroke-width="1.6"/>
+  <text x="1277" y="330" class="body">城市盲道巡检地图</text>
+
+  <rect x="1248" y="374" rx="18" ry="18" width="252" height="72" fill="#45309A" stroke="#C4B7FF" stroke-width="1.6"/>
+  <text x="1277" y="418" class="body">状态指标卡片</text>
+
+  <rect x="1248" y="462" rx="18" ry="18" width="252" height="72" fill="#45309A" stroke="#C4B7FF" stroke-width="1.6"/>
+  <text x="1277" y="506" class="body">趋势分析图表</text>
+
+  <rect x="1248" y="550" rx="18" ry="18" width="252" height="94" fill="#45309A" stroke="#C4B7FF" stroke-width="1.6"/>
+  <text x="1277" y="588" class="body">派单工作流</text>
+  <text x="1277" y="614" class="tiny">告警联动、任务派发</text>
+  <text x="1277" y="632" class="tiny">形成治理闭环</text>
+
+  <line x1="402" y1="428" x2="436" y2="428" stroke="#53C7FF" stroke-width="5" stroke-linecap="round" marker-end="url(#arrowBlue)"/>
+  <line x1="798" y1="428" x2="832" y2="428" stroke="#53C7FF" stroke-width="5" stroke-linecap="round" marker-end="url(#arrowBlue)"/>
+  <line x1="1174" y1="428" x2="1208" y2="428" stroke="#53C7FF" stroke-width="5" stroke-linecap="round" marker-end="url(#arrowBlue)"/>
+
+  <rect x="110" y="734" rx="22" ry="22" width="1380" height="102" fill="#0D2447" stroke="#4AA5FF" stroke-width="1.8"/>
+  <text x="152" y="778" class="footer">方案设计逻辑：</text>
+  <text x="324" y="778" class="footer">道路场景采集 → 边缘识别与事件判定 → MQTT 上云</text>
+  <text x="324" y="807" class="footer">→ 地图与指标可视化 → 告警联动与派单闭环</text>
+  <text x="152" y="829" class="small">核心亮点：连续帧去噪、事件状态机、GPS 冻结、边云协同、云端闭环治理</text>
+</svg>

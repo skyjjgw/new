@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <style>
+    html, body, #map { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #eef4f7; }
+    .marker { width: 30px; height: 30px; border: 3px solid white; border-radius: 50% 50% 50% 8px; transform: rotate(-45deg); box-shadow: 0 6px 18px rgba(22,48,66,.28); display: grid; place-items: center; }
+    .marker span { width: 10px; height: 10px; border-radius: 50%; background: white; transform: rotate(45deg); }
+    .urgent { background: #ef6b62; }.normal { background: #f2a847; }.low { background: #2bb79b; }
+    .selection { width: 36px; height: 36px; display: grid; place-items: center; color: white; font-size: 23px; background: #ef5c56; border: 3px solid white; border-radius: 50% 50% 50% 8px; transform: rotate(-45deg); box-shadow: 0 7px 20px rgba(229,75,69,.36); }
+    .selection span { transform: rotate(45deg); }
+    .user-location { width: 18px; height: 18px; box-sizing: border-box; border: 4px solid white; border-radius: 50%; background: #3478f6; box-shadow: 0 0 0 8px rgba(52,120,246,.18), 0 3px 12px rgba(31,74,153,.3); }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    let map;
+    let markers = [];
+    let selectionMarker;
+    let userMarker;
+    let pendingObstacles = [];
+    let pendingSelection = null;
+    let pendingUserLocation = null;
+    let selectionEnabled = false;
+    let geocoder;
+    let booting = false;
+
+    function tell(message) {
+      if (window.VisionBridge && window.VisionBridge.postMessage) {
+        window.VisionBridge.postMessage(message);
+      }
+    }
+
+    function tellSelection(lng, lat, address) {
+      tell(`select:${JSON.stringify({ lng, lat, address: address || '', source: 'map' })}`);
+    }
+
+    function bootVisionBridge(config) {
+      if (map || booting) return;
+      if (!config || !config.amapKey) { tell('error:missing-key'); return; }
+      booting = true;
+      window._AMapSecurityConfig = config.amapSecurityCode
+        ? { securityJsCode: config.amapSecurityCode }
+        : undefined;
+      const script = document.createElement('script');
+      script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(config.amapKey)}`;
+      script.async = true;
+      script.onload = () => {
+        try {
+          map = new AMap.Map('map', {
+            zoom: 16,
+            center: config.defaultCenter || [121.138923, 28.632112],
+            viewMode: '2D',
+            resizeEnable: true,
+            showLabel: true,
+          });
+          map.on('click', event => {
+            if (!selectionEnabled || !event.lnglat) return;
+            selectPoint(event.lnglat.getLng(), event.lnglat.getLat(), true);
+          });
+          AMap.plugin('AMap.Geocoder', () => { geocoder = new AMap.Geocoder({ radius: 800 }); });
+          try {
+            const approval = map.getMapApprovalNumber ? map.getMapApprovalNumber() : '';
+            tell(`approval:${typeof approval === 'string' ? approval : JSON.stringify(approval || {})}`);
+          } catch (_) {}
+          syncVisionBridgeObstacles(pendingObstacles);
+          syncVisionBridgeSelection(pendingSelection);
+          syncVisionBridgeUserLocation(pendingUserLocation);
+          tell('ready');
+        } catch (error) {
+          tell(`error:boot-failed:${String(error && error.message || error)}`);
+        }
+      };
+      script.onerror = () => tell('error:load-failed');
+      document.head.appendChild(script);
+    }
+
+    function syncVisionBridgeObstacles(items) {
+      pendingObstacles = items || [];
+      if (!map || !window.AMap) return;
+      if (markers.length) map.remove(markers);
+      markers = [];
+      pendingObstacles.forEach(item => {
+        const content = `<div class="marker ${item.priority || 'normal'}"><span></span></div>`;
+        const marker = new AMap.Marker({
+          position: [item.lng, item.lat],
+          anchor: 'bottom-center',
+          content,
+          extData: item.id,
+        });
+        marker.on('click', () => tell(`obstacle:${item.id}`));
+        markers.push(marker);
+      });
+      if (markers.length) {
+        map.add(markers);
+        if (!pendingSelection && !pendingUserLocation) {
+          map.setFitView(markers, false, [92, 48, 120, 48], 17);
+        }
+      }
+    }
+
+    function setVisionBridgeSelectionMode(enabled) {
+      selectionEnabled = Boolean(enabled);
+      if (map) map.setDefaultCursor(selectionEnabled ? 'crosshair' : 'default');
+    }
+
+    function syncVisionBridgeSelection(item) {
+      pendingSelection = item || null;
+      if (!map || !window.AMap) return;
+      if (!item) {
+        if (selectionMarker) map.remove(selectionMarker);
+        selectionMarker = null;
+        return;
+      }
+      selectPoint(Number(item.lng), Number(item.lat), false);
+    }
+
+    function selectPoint(lng, lat, notify) {
+      if (!Number.isFinite(lng) || !Number.isFinite(lat) || !map) return;
+      pendingSelection = { lng, lat };
+      if (!selectionMarker) {
+        selectionMarker = new AMap.Marker({
+          anchor: 'bottom-center',
+          content: '<div class="selection"><span>●</span></div>',
+          zIndex: 200,
+        });
+        map.add(selectionMarker);
+      }
+      selectionMarker.setPosition([lng, lat]);
+      map.setCenter([lng, lat], false, 300);
+      if (!notify) return;
+      if (!geocoder) { tellSelection(lng, lat, '地图手动标注点'); return; }
+      geocoder.getAddress([lng, lat], (status, result) => {
+        const address = status === 'complete' && result && result.regeocode
+          ? result.regeocode.formattedAddress
+          : '地图手动标注点';
+        tellSelection(lng, lat, address);
+      });
+    }
+
+    function syncVisionBridgeUserLocation(item) {
+      pendingUserLocation = item || null;
+      if (!map || !window.AMap) return;
+      if (!item) {
+        if (userMarker) map.remove(userMarker);
+        userMarker = null;
+        return;
+      }
+      if (!userMarker) {
+        userMarker = new AMap.Marker({
+          anchor: 'center',
+          content: '<div class="user-location"></div>',
+          zIndex: 180,
+        });
+        map.add(userMarker);
+      }
+      userMarker.setPosition([Number(item.lng), Number(item.lat)]);
+      if (!pendingSelection && !markers.length) map.setCenter([Number(item.lng), Number(item.lat)]);
+    }
+
+    window.addEventListener('error', event => {
+      if (!map && booting) tell(`error:boot-failed:${event.message || 'unknown'}`);
+    });
+  </script>
+</body>
+</html>

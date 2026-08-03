@@ -1,0 +1,22 @@
+[Unit]
+Description=VisionBridge MediaMTX WebRTC gateway
+After=network-online.target visionbridge-api.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=visionbridge
+Group=visionbridge
+ExecStart=/usr/local/bin/mediamtx /etc/visionbridge/mediamtx.yml
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/visionbridge
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+

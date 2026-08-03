@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>第四页_核心识别与事件机制</title>
+  <style>
+    :root {
+      --bg-1: #08192f;
+      --bg-2: #0f2d57;
+      --panel: rgba(13, 33, 66, 0.92);
+      --panel-2: rgba(18, 44, 84, 0.94);
+      --line: rgba(91, 158, 255, 0.35);
+      --text: #f4fbff;
+      --muted: #c4ddff;
+      --blue: #3ea2ff;
+      --cyan: #56d8ff;
+      --green: #36d08f;
+      --yellow: #ffbf47;
+      --orange: #ff8d4d;
+      --red: #ff6f61;
+      --shadow: 0 20px 48px rgba(0, 0, 0, 0.28);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 8% 88%, rgba(65, 120, 255, 0.18), transparent 24%),
+        radial-gradient(circle at 90% 12%, rgba(88, 219, 255, 0.14), transparent 22%),
+        linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 100%);
+      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+      color: var(--text);
+    }
+
+    .slide {
+      position: relative;
+      width: 1600px;
+      height: 900px;
+      overflow: hidden;
+      border-radius: 28px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)),
+        linear-gradient(135deg, #071a33 0%, #10386d 100%);
+      box-shadow: var(--shadow);
+      transform-origin: center center;
+    }
+
+    .grid-lines::before,
+    .grid-lines::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .grid-lines::before {
+      background-image:
+        linear-gradient(rgba(103, 160, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(103, 160, 255, 0.08) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.28), transparent 72%);
+    }
+
+    .grid-lines::after {
+      background:
+        radial-gradient(circle at 18% 80%, rgba(37, 109, 209, 0.24), transparent 18%),
+        radial-gradient(circle at 88% 10%, rgba(70, 208, 255, 0.18), transparent 20%);
+    }
+
+    .top-accent {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 12px;
+      background: linear-gradient(90deg, #2f7dff, #47d4ff, #4ee1a0);
+    }
+
+    .header {
+      position: absolute;
+      top: 44px;
+      left: 64px;
+      right: 64px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+    }
+
+    .header-main {
+      max-width: 980px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border: 1px solid rgba(90, 168, 255, 0.34);
+      border-radius: 999px;
+      background: rgba(16, 42, 82, 0.82);
+      color: #d8ebff;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3fa8ff, #56dcff);
+      box-shadow: 0 0 14px rgba(86, 220, 255, 0.7);
+    }
+
+    .title {
+      margin: 18px 0 10px;
+      font-size: 44px;
+      line-height: 1.18;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .summary {
+      min-width: 348px;
+      padding: 22px 24px 20px;
+      border-radius: 22px;
+      border: 1px solid rgba(94, 171, 255, 0.28);
+      background: rgba(10, 28, 56, 0.86);
+      box-shadow: var(--shadow);
+    }
+
+    .summary-label {
+      font-size: 16px;
+      font-weight: 700;
+      color: #8bdfff;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .summary-text {
+      margin-top: 10px;
+      font-size: 28px;
+      line-height: 1.45;
+      font-weight: 800;
+    }
+
+    .summary-tip {
+      margin-top: 10px;
+      font-size: 17px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .main {
+      position: absolute;
+      left: 64px;
+      right: 64px;
+      top: 220px;
+      bottom: 136px;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 24px;
+    }
+
+    .panel {
+      position: relative;
+      padding: 28px;
+      border-radius: 28px;
+      border: 1px solid rgba(94, 171, 255, 0.24);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0));
+      pointer-events: none;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .panel-title .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      box-shadow: 0 0 16px currentColor;
+    }
+
+    .process-list {
+      display: grid;
+      gap: 18px;
+    }
+
+    .process-card {
+      position: relative;
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 18px;
+      align-items: center;
+      padding: 18px 20px;
+      border-radius: 22px;
+      border: 1px solid rgba(109, 193, 255, 0.22);
+      background: rgba(16, 39, 76, 0.92);
+    }
+
+    .process-card + .process-card::before {
+      content: "";
+      position: absolute;
+      top: -18px;
+      left: 42px;
+      width: 2px;
+      height: 18px;
+      background: linear-gradient(180deg, rgba(86, 216, 255, 0), rgba(86, 216, 255, 0.7));
+    }
+
+    .step {
+      display: grid;
+      place-items: center;
+      width: 68px;
+      height: 68px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(58, 146, 255, 0.25), rgba(67, 211, 255, 0.18));
+      border: 1px solid rgba(92, 196, 255, 0.35);
+      font-size: 24px;
+      font-weight: 800;
+      color: #dff4ff;
+    }
+
+    .card-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .card-text {
+      font-size: 18px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .state-list {
+      display: grid;
+      gap: 18px;
+    }
+
+    .state-card {
+      position: relative;
+      padding: 20px 22px 20px 24px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: var(--panel-2);
+      overflow: hidden;
+    }
+
+    .state-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 8px;
+      height: 100%;
+      background: var(--card-color);
+      box-shadow: 0 0 20px var(--card-color);
+    }
+
+    .state-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 10px;
+    }
+
+    .state-title {
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .state-pill {
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #102545;
+      background: var(--card-color);
+      white-space: nowrap;
+    }
+
+    .state-text {
+      font-size: 18px;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+
+    .state-arrow {
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      color: rgba(153, 220, 255, 0.85);
+      height: 8px;
+      line-height: 1;
+    }
+
+    .footer-bar {
+      position: absolute;
+      left: 64px;
+      right: 64px;
+      bottom: 42px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 22px 26px;
+      border-radius: 24px;
+      border: 1px solid rgba(94, 171, 255, 0.3);
+      background: rgba(8, 27, 54, 0.88);
+      box-shadow: var(--shadow);
+    }
+
+    .footer-tag {
+      flex: 0 0 auto;
+      padding: 9px 16px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #2f81ff, #49d6ff);
+      color: white;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+    }
+
+    .footer-text {
+      font-size: 22px;
+      line-height: 1.6;
+      font-weight: 700;
+    }
+
+    .footer-text strong {
+      color: #7be8ff;
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide grid-lines">
+    <div class="top-accent"></div>
+
+    <section class="header">
+      <div class="header-main">
+        <div class="eyebrow">PAGE 04 · 课题方案设计</div>
+        <h1 class="title">盲道占用识别与事件判定机制</h1>
+        <p class="subtitle">
+          面向盲道违规占用场景，系统以“连续识别 + 三态事件状态机”为核心，
+          将单次检测结果稳定转化为可追踪、可治理、可上云闭环的事件单元。
+        </p>
+      </div>
+
+      <aside class="summary">
+        <div class="summary-label">核心摘要</div>
+        <div class="summary-text">从“检测结果”到“治理事件”</div>
+        <div class="summary-tip">连续帧去噪、状态机判定、GPS 冻结、证据抓拍同步完成</div>
+      </aside>
+    </section>
+
+    <main class="main">
+      <section class="panel">
+        <div class="panel-title">
+          <span class="dot" style="color:#56d8ff; background:#56d8ff;"></span>
+          <span>识别流程链路</span>
+        </div>
+
+        <div class="process-list">
+          <article class="process-card">
+            <div class="step">01</div>
+            <div>
+              <div class="card-title">视频采集</div>
+              <div class="card-text">采集道路盲道场景视频与实时位置信息，为后续识别提供原始输入。</div>
+            </div>
+          </article>
+
+          <article class="process-card">
+            <div class="step">02</div>
+            <div>
+              <div class="card-title">目标检测</div>
+              <div class="card-text">基于 YOLOv8 识别非机动车、机动车与杂物等潜在占用目标。</div>
+            </div>
+          </article>
+
+          <article class="process-card">
+            <div class="step">03</div>
+            <div>
+              <div class="card-title">ROI 区域判定</div>
+              <div class="card-text">判断目标是否进入盲道关键区域，过滤掉道路背景中的无关对象。</div>
+            </div>
+          </article>
+
+          <article class="process-card">
+            <div class="step">04</div>
+            <div>
+              <div class="card-title">连续帧校验</div>
+              <div class="card-text">结合持续出现与持续消失阈值，抑制瞬时误报，提升事件判定稳定性。</div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <span class="dot" style="color:#4de39c; background:#4de39c;"></span>
+          <span>事件状态机</span>
+        </div>
+
+        <div class="state-list">
+          <article class="state-card" style="--card-color: #ffbf47;">
+            <div class="state-head">
+              <div class="state-title">suspected · 疑似占用</div>
+              <div class="state-pill">持续观察</div>
+            </div>
+            <div class="state-text">当目标连续出现在盲道区域内时，系统进入疑似状态，继续累计帧证据，避免单帧误判直接触发告警。</div>
+          </article>
+
+          <div class="state-arrow">↓</div>
+
+          <article class="state-card" style="--card-color: #ff7d57;">
+            <div class="state-head">
+              <div class="state-title">active · 确认事件</div>
+              <div class="state-pill">冻结上报</div>
+            </div>
+            <div class="state-text">当占用持续达到阈值后，系统确认事件，冻结 GPS 位置与抓拍图，并触发 MQTT 上云及云端告警联动。</div>
+          </article>
+
+          <div class="state-arrow">↓</div>
+
+          <article class="state-card" style="--card-color: #43d9a6;">
+            <div class="state-head">
+              <div class="state-title">cleared · 事件解除</div>
+              <div class="state-pill">闭环记录</div>
+            </div>
+            <div class="state-text">当目标连续消失达到阈值后，系统判定事件解除，并保留持续时间、解除状态与事件历史，支撑闭环治理。</div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer-bar">
+      <div class="footer-tag">关键创新</div>
+      <div class="footer-text">
+        将<strong>单次检测</strong>升级为<strong>连续确认的治理事件</strong>，
+        实现误报抑制、位置冻结、证据留存与云端闭环处置。
+      </div>
+    </footer>
+  </div>
+  <script>
+    (function () {
+      const slide = document.querySelector(".slide");
+      const baseWidth = 1600;
+      const baseHeight = 900;
+
+      function updateScale() {
+        const scale = Math.min(window.innerWidth / baseWidth, window.innerHeight / baseHeight) * 0.84;
+        slide.style.transform = "scale(" + Math.min(scale, 1) + ")";
+      }
+
+      updateScale();
+      window.addEventListener("resize", updateScale);
+    })();
+  </script>
+</body>
+</html>

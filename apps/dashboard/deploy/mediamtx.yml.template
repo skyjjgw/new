@@ -1,0 +1,58 @@
+logLevel: info
+logDestinations: [stdout]
+readTimeout: 10s
+writeTimeout: 10s
+writeQueueSize: 512
+
+authMethod: http
+authHTTPAddress: http://127.0.0.1:8000/api/v1/media/auth
+authHTTPExclude:
+  - action: api
+  - action: metrics
+  - action: pprof
+  - action: read
+    path: "~^devices/[a-zA-Z0-9_-]+$"
+  - action: playback
+    path: "~^devices/[a-zA-Z0-9_-]+$"
+
+api: true
+apiAddress: 127.0.0.1:9997
+metrics: false
+pprof: false
+playback: false
+
+rtsp: true
+rtspTransports: [tcp]
+rtspAddress: 127.0.0.1:8554
+rtspAuthMethods: [basic]
+rtmp: false
+srt: false
+
+hls: true
+hlsAddress: 127.0.0.1:8888
+hlsAllowOrigins: ['*']
+hlsAlwaysRemux: true
+hlsVariant: lowLatency
+hlsSegmentCount: 7
+hlsSegmentDuration: 1s
+hlsPartDuration: 200ms
+
+webrtc: true
+webrtcAddress: 127.0.0.1:8889
+webrtcAllowOrigins: ['*']
+webrtcLocalUDPAddress: :8189
+webrtcLocalTCPAddress: :8189
+webrtcIPsFromInterfaces: true
+webrtcAdditionalHosts: [__PUBLIC_IP__]
+webrtcICEServers2:
+  - url: turn:__PUBLIC_IP__:3478?transport=tcp
+    username: AUTH_SECRET
+    password: __TURN_SECRET__
+
+pathDefaults:
+  source: publisher
+  overridePublisher: false
+  maxReaders: 40
+
+paths:
+  "~^devices/[a-zA-Z0-9_-]+$":

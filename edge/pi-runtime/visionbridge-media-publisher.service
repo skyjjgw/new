@@ -1,0 +1,20 @@
+[Unit]
+Description=VisionBridge annotated video publisher
+After=network-online.target blind_occupancy_edge_iotsuite.service visionbridge-media-tunnel.service
+Wants=network-online.target visionbridge-media-tunnel.service
+Requires=blind_occupancy_edge_iotsuite.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+Environment=VISIONBRIDGE_MEDIA_ENV_FILE=/etc/visionbridge/media-publisher.env
+ExecStartPre=/usr/bin/bash -c 'for i in {1..30}; do curl -fsS http://127.0.0.1:8090/status.json >/dev/null && exit 0; sleep 2; done; exit 1'
+ExecStart=/opt/visionbridge/run_visionbridge_media_publisher.sh
+Restart=always
+RestartSec=4
+Nice=5
+
+[Install]
+WantedBy=multi-user.target
