@@ -30,7 +30,6 @@ visionbridge-aiot-accessibility/
 └─ README.md
 ```
 
-`90_历史版本与过程文件`、`99_私密配置_禁止提交` 和 `.trae` 仅保留在本地，不会进入 Git 仓库。
 
 ## 快速开始
 
